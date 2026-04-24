@@ -154,6 +154,39 @@ export interface ActiveEnvRow {
   environmentId: string | null;
 }
 
+// Flows
+
+export type FlowStepKind = 'request' | 'evaluate' | 'delay';
+
+export interface RequestStep {
+  id: string;
+  kind: 'request';
+  outputName: string;
+  draft: RequestDraft;
+}
+
+export interface EvaluateStep {
+  id: string;
+  kind: 'evaluate';
+  outputName: string;
+  expression: string;
+}
+
+export interface DelayStep {
+  id: string;
+  kind: 'delay';
+  ms: number;
+}
+
+export type FlowStep = RequestStep | EvaluateStep | DelayStep;
+
+export interface Flow {
+  id: string;
+  name: string;
+  order: number;
+  steps: FlowStep[];
+}
+
 // Scripting
 
 export type ConsoleLevel = 'log' | 'info' | 'warn' | 'error';

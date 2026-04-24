@@ -141,13 +141,16 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | 🟡 | Persistence is in-memory in this build (SQLite upgrade still pending) |
 | ⬜ | Charts / alerts / email notifications |
 
-## 14. Flows (visual API chaining) — *Phase 10*
+## 14. Flows (step-based API chaining) — *Phase 10*
 | Status | Feature |
 |:-:|---|
-| ⬜ | React Flow canvas with node palette |
-| ⬜ | Node types: Request, Evaluate, Condition, Delay, Output |
-| ⬜ | Output passing via `$.body.x` selectors |
-| ⬜ | End-to-end runner with per-node logs |
+| ✅ | Step engine (Request / Evaluate / Delay) with context threaded via outputName |
+| ✅ | JavaScript expressions in Evaluate steps with access to prior step outputs |
+| ✅ | Variable resolution in request steps before send (same engine as interactive) |
+| ✅ | Per-step results (status, timing, output, error) + final context preview |
+| ✅ | Abort on first error |
+| 🟡 | Visual canvas (React Flow) pending; today's UI is a vertical step list with reorder |
+| ⬜ | Conditional branching step |
 
 ## 15. Accounts + Real-time Sync — *Phase 11*
 | Status | Feature |

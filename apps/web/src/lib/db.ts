@@ -3,6 +3,7 @@ import type {
   ActiveEnvRow,
   Collection,
   Environment,
+  Flow,
   Folder,
   GlobalsRow,
   HistoryEntry,
@@ -19,6 +20,7 @@ export class PostmanlikeDB extends Dexie {
   environments!: Table<Environment, string>;
   globals!: Table<GlobalsRow, 'default'>;
   activeEnv!: Table<ActiveEnvRow, 'default'>;
+  flows!: Table<Flow, string>;
 
   constructor() {
     super('postmanlike');
@@ -41,6 +43,17 @@ export class PostmanlikeDB extends Dexie {
       environments: 'id, order',
       globals: 'key',
       activeEnv: 'key',
+    });
+    this.version(4).stores({
+      history: 'id, timestamp',
+      collections: 'id, order',
+      folders: 'id, collectionId, parentId, order',
+      savedRequests: 'id, collectionId, folderId, order',
+      tabsState: 'key',
+      environments: 'id, order',
+      globals: 'key',
+      activeEnv: 'key',
+      flows: 'id, order',
     });
   }
 }
@@ -228,4 +241,30 @@ export async function getActiveEnvId(): Promise<string | null> {
 
 export async function setActiveEnvId(environmentId: string | null) {
   await db.activeEnv.put({ key: 'default', environmentId });
+}
+
+// Flows
+
+export async function listFlows(): Promise<Flow[]> {
+  return db.flows.orderBy('order').toArray();
+}
+
+export async function createFlow(name: string): Promise<Flow> {
+  const existing = await db.flows.count();
+  const flow: Flow = {
+    id: `flow-${crypto.randomUUID()}`,
+    name: name.trim() || 'New Flow',
+    order: existing,
+    steps: [],
+  };
+  await db.flows.add(flow);
+  return flow;
+}
+
+export async function updateFlow(flow: Flow) {
+  await db.flows.put(flow);
+}
+
+export async function deleteFlow(id: string) {
+  await db.flows.delete(id);
 }
