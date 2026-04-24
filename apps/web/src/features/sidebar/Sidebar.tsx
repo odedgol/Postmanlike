@@ -4,8 +4,9 @@ import { HistoryPanel } from './HistoryPanel';
 import { CookiesPanel } from '../cookies/CookiesPanel';
 import { MocksPanel } from '../mocks/MocksPanel';
 import { MonitorsPanel } from '../monitors/MonitorsPanel';
+import { FlowsPanel } from '../flows/FlowsPanel';
 
-const SECTIONS = ['Collections', 'History', 'Cookies', 'Mocks', 'Monitors'] as const;
+const SECTIONS = ['Collections', 'History', 'Cookies', 'Mocks', 'Monitors', 'Flows'] as const;
 type Section = (typeof SECTIONS)[number];
 
 export function Sidebar() {
@@ -35,6 +36,7 @@ export function Sidebar() {
         {section === 'Cookies' && <CookiesPanel />}
         {section === 'Mocks' && <MocksPanel />}
         {section === 'Monitors' && <MonitorsPanel />}
+        {section === 'Flows' && <FlowsPanel />}
       </div>
     </div>
   );
