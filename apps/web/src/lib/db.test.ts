@@ -158,6 +158,100 @@ describe('collections + folders + saved requests', () => {
   });
 });
 
+describe('environments + globals + active env', () => {
+  beforeEach(async () => {
+    await db.environments.clear();
+    await db.globals.clear();
+    await db.activeEnv.clear();
+  });
+
+  it('creates environments with monotonically increasing order', async () => {
+    const { createEnvironment, listEnvironments } = await import('./db');
+    const a = await createEnvironment('Dev');
+    const b = await createEnvironment('Staging');
+    expect(a.order).toBe(0);
+    expect(b.order).toBe(1);
+    const list = await listEnvironments();
+    expect(list.map((e) => e.name)).toEqual(['Dev', 'Staging']);
+  });
+
+  it('updateEnvironment persists variable rows', async () => {
+    const { createEnvironment, updateEnvironment, listEnvironments } = await import('./db');
+    const env = await createEnvironment('Dev');
+    await updateEnvironment({
+      ...env,
+      values: [{ key: 'host', value: 'https://api.example', enabled: true }],
+    });
+    const fresh = (await listEnvironments())[0];
+    expect(fresh.values).toEqual([
+      { key: 'host', value: 'https://api.example', enabled: true },
+    ]);
+  });
+
+  it('deleting the active env clears activeEnvId', async () => {
+    const {
+      createEnvironment,
+      setActiveEnvId,
+      deleteEnvironment,
+      getActiveEnvId,
+    } = await import('./db');
+    const env = await createEnvironment('Dev');
+    await setActiveEnvId(env.id);
+    expect(await getActiveEnvId()).toBe(env.id);
+    await deleteEnvironment(env.id);
+    expect(await getActiveEnvId()).toBeNull();
+  });
+
+  it('globals get/set round-trips', async () => {
+    const { getGlobals, setGlobals } = await import('./db');
+    expect((await getGlobals()).values).toEqual([]);
+    await setGlobals([{ key: 'company', value: 'Acme', enabled: true }]);
+    expect((await getGlobals()).values[0].value).toBe('Acme');
+  });
+});
+
+describe('buildScopes', () => {
+  beforeEach(async () => {
+    await db.environments.clear();
+    await db.globals.clear();
+    await db.activeEnv.clear();
+  });
+
+  it('merges active env + globals, filtering disabled and empty keys', async () => {
+    const {
+      createEnvironment,
+      updateEnvironment,
+      setActiveEnvId,
+      setGlobals,
+    } = await import('./db');
+    const { buildScopes } = await import('./scopes');
+    const env = await createEnvironment('Dev');
+    await updateEnvironment({
+      ...env,
+      values: [
+        { key: 'host', value: 'https://api.example', enabled: true },
+        { key: 'ignored', value: 'x', enabled: false },
+        { key: '', value: 'no-key', enabled: true },
+      ],
+    });
+    await setActiveEnvId(env.id);
+    await setGlobals([{ key: 'company', value: 'Acme', enabled: true }]);
+
+    const scopes = await buildScopes();
+    expect(scopes.environment).toEqual({ host: 'https://api.example' });
+    expect(scopes.global).toEqual({ company: 'Acme' });
+  });
+
+  it('environment scope is empty when no active env is set', async () => {
+    const { setGlobals } = await import('./db');
+    const { buildScopes } = await import('./scopes');
+    await setGlobals([{ key: 'g', value: '1', enabled: true }]);
+    const scopes = await buildScopes();
+    expect(scopes.environment).toEqual({});
+    expect(scopes.global).toEqual({ g: '1' });
+  });
+});
+
 describe('tabs state persistence', () => {
   beforeEach(async () => {
     await db.tabsState.clear();
