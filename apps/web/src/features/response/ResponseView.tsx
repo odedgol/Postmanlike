@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { formatBytes, formatMs } from '@postmanlike/shared';
 import { useTabsStore } from '../../state/tabsStore';
+import { useTestResultsStore } from '../../state/testResultsStore';
 
-const TABS = ['Body', 'Headers', 'Cookies'] as const;
+const TABS = ['Body', 'Headers', 'Cookies', 'Tests'] as const;
 type RespTab = (typeof TABS)[number];
 
 interface Props {
@@ -83,7 +84,57 @@ export function ResponseView({ tabId }: Props) {
         )}
         {view === 'Headers' && <HeadersTab headers={response.headers} />}
         {view === 'Cookies' && <CookiesTab headers={response.headers} />}
+        {view === 'Tests' && <TestsTab tabId={tabId} />}
       </div>
+    </div>
+  );
+}
+
+function TestsTab({ tabId }: { tabId: string }) {
+  const result = useTestResultsStore((s) => s.byTab[tabId]);
+  if (!result || (result.tests.length === 0 && !result.error)) {
+    return (
+      <div data-testid="tests-empty" className="p-3 text-neutral-500 text-sm">
+        No tests ran. Add assertions in the Tests tab of the request.
+      </div>
+    );
+  }
+  const passed = result.tests.filter((t) => t.pass).length;
+  const failed = result.tests.length - passed;
+  return (
+    <div className="p-3 space-y-1" data-testid="tests-panel">
+      <div className="text-sm">
+        <span className="text-emerald-500 font-semibold" data-testid="tests-passed">
+          {passed} passed
+        </span>
+        {failed > 0 && (
+          <>
+            {' · '}
+            <span className="text-red-500 font-semibold" data-testid="tests-failed">
+              {failed} failed
+            </span>
+          </>
+        )}
+      </div>
+      {result.tests.map((t, i) => (
+        <div
+          key={i}
+          data-testid={`test-result-${t.pass ? 'pass' : 'fail'}`}
+          className={t.pass ? 'text-emerald-500' : 'text-red-500'}
+        >
+          {t.pass ? '✓' : '✗'} {t.name}
+          {!t.pass && t.message && (
+            <div className="ml-4 text-xs text-red-400" data-testid="test-result-message">
+              {t.message}
+            </div>
+          )}
+        </div>
+      ))}
+      {result.error && (
+        <div data-testid="test-script-error" className="text-red-500 text-xs mt-2">
+          Script error: {result.error}
+        </div>
+      )}
     </div>
   );
 }

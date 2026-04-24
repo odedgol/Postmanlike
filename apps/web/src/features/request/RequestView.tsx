@@ -6,11 +6,20 @@ import {
   resolveDraft,
   type VariableScopes,
 } from '@postmanlike/shared';
+import { runPreRequest, runTests } from '@postmanlike/runtime';
 import { useTabsStore } from '../../state/tabsStore';
 import { sendViaProxy } from '../../lib/proxyClient';
 import { recordHistory } from '../../lib/db';
 import { buildScopes } from '../../lib/scopes';
-import { getActiveEnvId, getGlobals, listEnvironments } from '../../lib/db';
+import {
+  getActiveEnvId,
+  getGlobals,
+  listEnvironments,
+  setGlobals,
+  updateEnvironment,
+} from '../../lib/db';
+import { useConsoleStore } from '../../state/consoleStore';
+import { useTestResultsStore } from '../../state/testResultsStore';
 import { UrlBar } from './UrlBar';
 import { RequestTabs } from './RequestTabs';
 import { UnresolvedBadge } from '../env/UnresolvedBadge';
@@ -59,7 +68,24 @@ export function RequestView({ tabId }: Props) {
 
   const onSend = async () => {
     if (tab.status === 'sending') return;
-    const liveScopes = await buildScopes();
+
+    // Pre-request script runs first, potentially mutating env/globals.
+    let liveScopes = await buildScopes();
+    const preOutcome = runPreRequest(tab.draft, {
+      environment: liveScopes.environment ?? {},
+      globals: liveScopes.global ?? {},
+    });
+    useConsoleStore.getState().push(preOutcome.consoleEntries);
+    await applyPatches(preOutcome.envPatch, preOutcome.globalsPatch);
+    if (preOutcome.error) {
+      setStatus(tab.id, 'error', {
+        error: `Pre-request script error: ${preOutcome.error.message}`,
+        abort: undefined,
+      });
+      return;
+    }
+    liveScopes = await buildScopes();
+
     const { draft: resolved } = resolveDraft(tab.draft, liveScopes);
     const payload = buildProxyPayload(resolved);
 
@@ -76,6 +102,15 @@ export function RequestView({ tabId }: Props) {
         timingMs: response.timingMs,
         sizeBytes: response.sizeBytes,
       });
+      // Post-response / test script.
+      const testOutcome = runTests(tab.draft, response, {
+        environment: liveScopes.environment ?? {},
+        globals: liveScopes.global ?? {},
+      });
+      useConsoleStore.getState().push(testOutcome.consoleEntries);
+      useTestResultsStore
+        .getState()
+        .setForTab(tab.id, testOutcome.tests, testOutcome.error?.message);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const cancelled = err instanceof DOMException && err.name === 'AbortError';
@@ -85,6 +120,32 @@ export function RequestView({ tabId }: Props) {
       });
     }
   };
+
+  async function applyPatches(
+    envPatch: Record<string, string>,
+    globalsPatch: Record<string, string>,
+  ) {
+    if (Object.keys(envPatch).length > 0) {
+      const envs = await listEnvironments();
+      const activeId = await getActiveEnvId();
+      const active = activeId ? envs.find((e) => e.id === activeId) : undefined;
+      if (active) {
+        const map = new Map(active.values.map((v) => [v.key, v] as const));
+        for (const [k, v] of Object.entries(envPatch)) {
+          map.set(k, { key: k, value: v, enabled: true });
+        }
+        await updateEnvironment({ ...active, values: [...map.values()] });
+      }
+    }
+    if (Object.keys(globalsPatch).length > 0) {
+      const row = await getGlobals();
+      const map = new Map(row.values.map((v) => [v.key, v] as const));
+      for (const [k, v] of Object.entries(globalsPatch)) {
+        map.set(k, { key: k, value: v, enabled: true });
+      }
+      await setGlobals([...map.values()]);
+    }
+  }
 
   const onCancel = () => {
     tab.abort?.abort();
