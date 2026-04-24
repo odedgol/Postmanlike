@@ -155,8 +155,13 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 15. Accounts + Real-time Sync — *Phase 11*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Accounts (email/password + GitHub OAuth), JWT |
-| ⬜ | Postgres + Prisma storage |
+| ✅ | Accounts (email/password) with scrypt-hashed passwords |
+| ✅ | HMAC-signed session tokens (`body.signature`, 7-day TTL) |
+| ✅ | `/auth/register`, `/auth/login`, `/auth/me` endpoints |
+| ✅ | Sign-in modal + top-bar user chip + sign out |
+| 🟡 | Accounts persist only for the lifetime of the proxy process (in-memory) |
+| ⬜ | Postgres + Prisma persistence |
+| ⬜ | GitHub OAuth |
 | ⬜ | Yjs-based live editing over WebSocket |
 | ⬜ | Presence cursors, owner/editor/viewer roles |
 

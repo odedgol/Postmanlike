@@ -5,6 +5,7 @@ import { createCookiesRouter } from './routes/cookies.js';
 import { createMockMatcherRouter, createMocksRouter } from './routes/mocks.js';
 import { createMonitorsRouter } from './routes/monitors.js';
 import { monitorScheduler } from './lib/monitors.js';
+import { createAuthRouter } from './routes/auth.js';
 
 export function createApp() {
   const app = express();
@@ -43,6 +44,7 @@ export function createApp() {
   app.use('/mocks', createMocksRouter());
   app.use('/mock', createMockMatcherRouter());
   app.use('/monitors', createMonitorsRouter());
+  app.use('/auth', createAuthRouter());
 
   return app;
 }
