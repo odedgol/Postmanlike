@@ -1,0 +1,21 @@
+{
+  "name": "postmanlike",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A desktop-focused web clone of postman.com",
+  "scripts": {
+    "dev": "concurrently -n web,proxy -c blue,green \"pnpm --filter @postmanlike/web dev\" \"pnpm --filter @postmanlike/proxy dev\"",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-neutral-100 text-neutral-900 antialiased;
+}
+
+html.dark body {
+  @apply bg-neutral-950 text-neutral-100;
+}
+
+.pl-input {
+  @apply bg-transparent outline-none px-2 py-1 text-sm border border-neutral-300 dark:border-neutral-800 rounded focus:border-brand;
+}
+
+.pl-btn {
+  @apply px-3 py-1.5 text-sm rounded font-medium transition-colors;
+}
+
+.pl-btn-primary {
+  @apply bg-brand text-white hover:bg-brand-dark;
+}
+
+.pl-btn-ghost {
+  @apply hover:bg-neutral-200 dark:hover:bg-neutral-800;
+}
+
+.pl-chip {
+  @apply text-xs px-1.5 py-0.5 rounded font-mono;
+}
