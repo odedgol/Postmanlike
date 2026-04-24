@@ -3,6 +3,8 @@ import cors from 'cors';
 import { createProxyRouter } from './routes/proxy.js';
 import { createCookiesRouter } from './routes/cookies.js';
 import { createMockMatcherRouter, createMocksRouter } from './routes/mocks.js';
+import { createMonitorsRouter } from './routes/monitors.js';
+import { monitorScheduler } from './lib/monitors.js';
 
 export function createApp() {
   const app = express();
@@ -40,6 +42,7 @@ export function createApp() {
   app.use('/cookies', createCookiesRouter());
   app.use('/mocks', createMocksRouter());
   app.use('/mock', createMockMatcherRouter());
+  app.use('/monitors', createMonitorsRouter());
 
   return app;
 }
@@ -52,4 +55,5 @@ if (isEntry) {
   app.listen(PORT, () => {
     console.log(`[postmanlike-proxy] listening on http://localhost:${PORT}`);
   });
+  monitorScheduler.start();
 }

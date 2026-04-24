@@ -135,9 +135,11 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 13. Monitors — *Phase 9*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Scheduled collection runs (cron-like) |
-| ⬜ | Run history with pass/fail, duration, chart |
-| ⬜ | SQLite persistence in proxy, node-cron scheduler |
+| ✅ | Scheduled collection runs (every N seconds, in-memory scheduler) |
+| ✅ | Run-on-demand via UI; run history per monitor |
+| ✅ | Summary per run (passed/failed/errors/duration) |
+| 🟡 | Persistence is in-memory in this build (SQLite upgrade still pending) |
+| ⬜ | Charts / alerts / email notifications |
 
 ## 14. Flows (visual API chaining) — *Phase 10*
 | Status | Feature |
