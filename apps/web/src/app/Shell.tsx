@@ -1,6 +1,7 @@
 import { Sidebar } from '../features/sidebar/Sidebar';
 import { TabArea } from '../features/tabs/TabArea';
 import { ConsolePanel } from '../features/console/ConsolePanel';
+import { UpdateBanner } from '../features/install/UpdateBanner';
 import { TopBar } from './TopBar';
 
 interface Props {
@@ -11,7 +12,8 @@ interface Props {
 
 export function Shell({ onRequestSave, onRequestCodegen, onRequestImport }: Props) {
   return (
-    <div className="h-full w-full grid grid-rows-[auto_1fr_auto] overflow-hidden">
+    <div className="h-full w-full grid grid-rows-[auto_auto_1fr_auto] overflow-hidden">
+      <UpdateBanner />
       <TopBar />
       <div className="grid grid-cols-[280px_1fr] overflow-hidden border-t border-neutral-300 dark:border-neutral-800">
         <aside

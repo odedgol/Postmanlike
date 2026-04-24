@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { EnvSelector } from '../features/env/EnvSelector';
 import { RunnerDialog } from '../features/runner/RunnerDialog';
 import { SignInDialog } from '../features/auth/SignInDialog';
+import { InstallButton } from '../features/install/InstallButton';
 import { useAuthStore } from '../state/authStore';
 
 export function TopBar() {
@@ -55,6 +56,7 @@ export function TopBar() {
           Sign in
         </button>
       )}
+      <InstallButton />
       <button
         className="pl-btn pl-btn-ghost"
         onClick={() => setDark((v) => !v)}
