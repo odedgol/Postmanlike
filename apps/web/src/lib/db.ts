@@ -1,7 +1,10 @@
 import Dexie, { type Table } from 'dexie';
 import type {
+  ActiveEnvRow,
   Collection,
+  Environment,
   Folder,
+  GlobalsRow,
   HistoryEntry,
   PersistedTabsState,
   SavedRequest,
@@ -13,6 +16,9 @@ export class PostmanlikeDB extends Dexie {
   folders!: Table<Folder, string>;
   savedRequests!: Table<SavedRequest, string>;
   tabsState!: Table<PersistedTabsState, 'default'>;
+  environments!: Table<Environment, string>;
+  globals!: Table<GlobalsRow, 'default'>;
+  activeEnv!: Table<ActiveEnvRow, 'default'>;
 
   constructor() {
     super('postmanlike');
@@ -25,6 +31,16 @@ export class PostmanlikeDB extends Dexie {
       folders: 'id, collectionId, parentId, order',
       savedRequests: 'id, collectionId, folderId, order',
       tabsState: 'key',
+    });
+    this.version(3).stores({
+      history: 'id, timestamp',
+      collections: 'id, order',
+      folders: 'id, collectionId, parentId, order',
+      savedRequests: 'id, collectionId, folderId, order',
+      tabsState: 'key',
+      environments: 'id, order',
+      globals: 'key',
+      activeEnv: 'key',
     });
   }
 }
@@ -164,4 +180,52 @@ export async function loadTabsState(): Promise<PersistedTabsState | undefined> {
 
 export async function saveTabsState(state: Omit<PersistedTabsState, 'key'>) {
   await db.tabsState.put({ ...state, key: 'default' });
+}
+
+// Environments + globals + active env
+
+export async function listEnvironments(): Promise<Environment[]> {
+  return db.environments.orderBy('order').toArray();
+}
+
+export async function createEnvironment(name: string): Promise<Environment> {
+  const existing = await db.environments.count();
+  const entry: Environment = {
+    id: `env-${crypto.randomUUID()}`,
+    name: name.trim() || 'New Environment',
+    order: existing,
+    values: [],
+  };
+  await db.environments.add(entry);
+  return entry;
+}
+
+export async function updateEnvironment(env: Environment) {
+  await db.environments.put(env);
+}
+
+export async function deleteEnvironment(id: string) {
+  await db.environments.delete(id);
+  const active = await db.activeEnv.get('default');
+  if (active?.environmentId === id) {
+    await db.activeEnv.put({ key: 'default', environmentId: null });
+  }
+}
+
+export async function getGlobals(): Promise<GlobalsRow> {
+  const row = await db.globals.get('default');
+  return row ?? { key: 'default', values: [] };
+}
+
+export async function setGlobals(values: GlobalsRow['values']) {
+  await db.globals.put({ key: 'default', values });
+}
+
+export async function getActiveEnvId(): Promise<string | null> {
+  const row = await db.activeEnv.get('default');
+  return row?.environmentId ?? null;
+}
+
+export async function setActiveEnvId(environmentId: string | null) {
+  await db.activeEnv.put({ key: 'default', environmentId });
 }

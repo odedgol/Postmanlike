@@ -91,3 +91,26 @@ export interface PersistedTabsState {
   tabs: PersistedTab[];
   activeId: string;
 }
+
+export interface EnvironmentVariable {
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  order: number;
+  values: EnvironmentVariable[];
+}
+
+export interface GlobalsRow {
+  key: 'default';
+  values: EnvironmentVariable[];
+}
+
+export interface ActiveEnvRow {
+  key: 'default';
+  environmentId: string | null;
+}

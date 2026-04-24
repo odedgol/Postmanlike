@@ -1,10 +1,19 @@
 import { useMemo } from 'react';
-import { buildProxyPayload } from '@postmanlike/shared';
+import { useLiveQuery } from 'dexie-react-hooks';
+import {
+  buildProxyPayload,
+  collectUnresolvedFromDraft,
+  resolveDraft,
+  type VariableScopes,
+} from '@postmanlike/shared';
 import { useTabsStore } from '../../state/tabsStore';
 import { sendViaProxy } from '../../lib/proxyClient';
 import { recordHistory } from '../../lib/db';
+import { buildScopes } from '../../lib/scopes';
+import { getActiveEnvId, getGlobals, listEnvironments } from '../../lib/db';
 import { UrlBar } from './UrlBar';
 import { RequestTabs } from './RequestTabs';
+import { UnresolvedBadge } from '../env/UnresolvedBadge';
 import { ResponseView } from '../response/ResponseView';
 import { nanoid } from 'nanoid';
 
@@ -18,12 +27,42 @@ export function RequestView({ tabId }: Props) {
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
   const { updateDraft, setStatus } = useTabsStore();
 
-  const payload = useMemo(() => (tab ? buildProxyPayload(tab.draft) : null), [tab]);
+  // Reactive scopes for the unresolved badge. Reruns on env / globals / active env change.
+  const scopes = useLiveQuery(
+    async (): Promise<VariableScopes> => {
+      const [envs, globals, activeId] = await Promise.all([
+        listEnvironments(),
+        getGlobals(),
+        getActiveEnvId(),
+      ]);
+      const active = activeId ? envs.find((e) => e.id === activeId) : undefined;
+      const toRecord = (rows: { key: string; value: string; enabled: boolean }[]) => {
+        const out: Record<string, string> = {};
+        for (const r of rows) if (r.enabled && r.key.trim().length > 0) out[r.key] = r.value;
+        return out;
+      };
+      return {
+        environment: active ? toRecord(active.values) : {},
+        global: toRecord(globals.values),
+      };
+    },
+    [],
+    {} as VariableScopes,
+  );
 
-  if (!tab || !payload) return null;
+  const unresolved = useMemo(() => {
+    if (!tab) return [];
+    return collectUnresolvedFromDraft(tab.draft, scopes ?? {});
+  }, [tab, scopes]);
+
+  if (!tab) return null;
 
   const onSend = async () => {
     if (tab.status === 'sending') return;
+    const liveScopes = await buildScopes();
+    const { draft: resolved } = resolveDraft(tab.draft, liveScopes);
+    const payload = buildProxyPayload(resolved);
+
     const ctrl = new AbortController();
     setStatus(tab.id, 'sending', { abort: ctrl, response: undefined, error: undefined });
     try {
@@ -52,7 +91,7 @@ export function RequestView({ tabId }: Props) {
   };
 
   return (
-    <div className="h-full grid grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] overflow-hidden">
+    <div className="h-full grid grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] overflow-hidden">
       <UrlBar
         methods={METHODS}
         method={tab.draft.method}
@@ -63,6 +102,7 @@ export function RequestView({ tabId }: Props) {
         onSend={onSend}
         onCancel={onCancel}
       />
+      <UnresolvedBadge names={unresolved} />
       <div className="border-b border-neutral-300 dark:border-neutral-800 overflow-auto">
         <RequestTabs tabId={tab.id} />
       </div>

@@ -56,10 +56,13 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 5. Environments & Variables — *Phase 3*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Environment manager (CRUD, active selector) |
-| ⬜ | Scopes: global, collection, environment, local, data |
-| ⬜ | `{{var}}` resolution + hover preview + unresolved highlighting |
-| ⬜ | Dynamic vars (`$guid`, `$timestamp`, `$randomInt`, …) |
+| ✅ | Environment manager (CRUD env + variables, active selector in top bar) |
+| ✅ | Globals (separate pane in env manager) |
+| ✅ | Scope precedence: local > data > environment > collection > global |
+| ✅ | `{{var}}` resolution on send across url / params / headers / body |
+| ✅ | Unresolved-variables badge on the request view |
+| 🟡 | Hover preview on a single field (pending; badge covers the use case) |
+| ✅ | Dynamic vars (`$guid`, `$randomUUID`, `$timestamp`, `$isoTimestamp`, `$randomInt`) |
 
 ## 6. Scripting & Tests — *Phase 4*
 | Status | Feature |

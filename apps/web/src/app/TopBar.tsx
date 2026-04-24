@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { EnvSelector } from '../features/env/EnvSelector';
 
 export function TopBar() {
   const [dark, setDark] = useState(() =>
@@ -16,6 +17,7 @@ export function TopBar() {
       </div>
       <div className="text-xs text-neutral-500">desktop web</div>
       <div className="flex-1" />
+      <EnvSelector />
       <button
         className="pl-btn pl-btn-ghost"
         onClick={() => setDark((v) => !v)}
