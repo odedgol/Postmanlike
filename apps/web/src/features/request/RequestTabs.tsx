@@ -36,7 +36,7 @@ export function RequestTabs({ tabId }: Props) {
           </button>
         ))}
       </div>
-      <div className="flex-1 p-2 overflow-auto">
+      <div className="flex-1 min-h-0 p-2 overflow-auto">
         {section === 'Params' && (
           <KeyValueTable
             testid="params-table"

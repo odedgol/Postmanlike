@@ -152,7 +152,7 @@ export function RequestView({ tabId }: Props) {
   };
 
   return (
-    <div className="h-full grid grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       <UrlBar
         methods={METHODS}
         method={tab.draft.method}
@@ -164,11 +164,19 @@ export function RequestView({ tabId }: Props) {
         onCancel={onCancel}
       />
       <UnresolvedBadge names={unresolved} />
-      <div className="border-b border-neutral-300 dark:border-neutral-800 overflow-auto">
-        <RequestTabs tabId={tab.id} />
-      </div>
-      <div className="overflow-auto">
-        <ResponseView tabId={tab.id} />
+      {/*
+        flex split (request / response) with flex-1 + min-h-0 on each half
+        so they share the remaining space equally even when the children's
+        intrinsic content (e.g. the body textarea) would otherwise bias
+        grid's track sizing.
+      */}
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 border-b border-neutral-300 dark:border-neutral-800 overflow-hidden">
+          <RequestTabs tabId={tab.id} />
+        </div>
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ResponseView tabId={tab.id} />
+        </div>
       </div>
     </div>
   );

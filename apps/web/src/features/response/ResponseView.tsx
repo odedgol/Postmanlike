@@ -72,7 +72,13 @@ export function ResponseView({ tabId }: Props) {
           ))}
         </div>
       </div>
-      <div className="flex-1 overflow-auto font-mono text-xs">
+      {/*
+        min-h-0 is required on a flex child with overflow-auto in a
+        flex column: without it the child's min-height is `auto`, the
+        flex item grows to fit its content, and the scroll never
+        engages — causing the body to spill past the container.
+      */}
+      <div className="flex-1 min-h-0 overflow-auto font-mono text-xs">
         {view === 'Body' && (
           <BodyTab
             body={response.body}
