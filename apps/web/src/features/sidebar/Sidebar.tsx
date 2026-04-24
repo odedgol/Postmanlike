@@ -16,7 +16,8 @@ export function Sidebar() {
     <div className="h-full flex flex-col">
       <div
         role="tablist"
-        className="flex gap-1 px-1 pt-1 border-b border-neutral-300 dark:border-neutral-800 text-xs overflow-x-auto whitespace-nowrap"
+        data-testid="sidebar-tablist"
+        className="grid grid-cols-3 gap-px p-px border-b border-neutral-300 dark:border-neutral-800 text-[11px] bg-neutral-200 dark:bg-neutral-800"
       >
         {SECTIONS.map((s) => {
           const active = section === s;
@@ -27,10 +28,10 @@ export function Sidebar() {
               aria-selected={active}
               data-testid={`sidebar-section-${s.toLowerCase()}`}
               onClick={() => setSection(s)}
-              className={`px-2.5 py-1.5 rounded-t border-b-2 transition-colors ${
+              className={`py-2 px-1 text-center transition-colors truncate ${
                 active
-                  ? 'text-brand border-brand'
-                  : 'text-neutral-500 border-transparent hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900'
+                  ? 'bg-white dark:bg-neutral-950 text-brand font-semibold'
+                  : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100'
               }`}
             >
               {s}
