@@ -6,9 +6,11 @@ import { CodeGenPanel } from '../features/codegen/CodeGenPanel';
 import { KeyboardShortcuts } from './KeyboardShortcuts';
 import { useTabsPersistence } from '../state/persistence';
 import { useTabsStore } from '../state/tabsStore';
+import { useWorkspaceSync } from '../state/syncEngine';
 
 export function App() {
   useTabsPersistence();
+  useWorkspaceSync();
   const [saveDialogForTab, setSaveDialogForTab] = useState<string | null>(null);
   const [codegenForTab, setCodegenForTab] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
