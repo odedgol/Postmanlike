@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Collection, Folder, SavedRequest } from '@postmanlike/shared';
+import { exportPostmanCollection } from '@postmanlike/shared';
 import {
   createCollection,
   createFolder,
@@ -101,6 +102,26 @@ function CollectionNode({ collection }: { collection: Collection }) {
             title="New folder"
           >
             ＋
+          </button>
+          <button
+            className="pl-btn pl-btn-ghost"
+            onClick={async () => {
+              const folders = await listFolders(collection.id);
+              const requests = await listSavedRequests(collection.id);
+              const json = exportPostmanCollection({ collection, folders, requests });
+              const blob = new Blob([JSON.stringify(json, null, 2)], {
+                type: 'application/json',
+              });
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = `${collection.name.replace(/\s+/g, '_')}.postman_collection.json`;
+              a.click();
+              URL.revokeObjectURL(a.href);
+            }}
+            data-testid={`export-collection-${collection.id}`}
+            title="Export"
+          >
+            ⇓
           </button>
           <button
             className="pl-btn pl-btn-ghost text-red-500"

@@ -14,6 +14,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@postmanlike/codegen": "workspace:*",
     "@postmanlike/runtime": "workspace:*",
     "@postmanlike/shared": "workspace:*",
     "dexie": "^4.0.10",

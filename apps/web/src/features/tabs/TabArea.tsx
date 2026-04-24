@@ -3,9 +3,11 @@ import { RequestView } from '../request/RequestView';
 
 interface Props {
   onRequestSave: () => void;
+  onRequestCodegen: () => void;
+  onRequestImport: () => void;
 }
 
-export function TabArea({ onRequestSave }: Props) {
+export function TabArea({ onRequestSave, onRequestCodegen, onRequestImport }: Props) {
   const { tabs, activeId, addTab, closeTab, activate } = useTabsStore();
   const active = tabs.find((t) => t.id === activeId);
 
@@ -60,6 +62,20 @@ export function TabArea({ onRequestSave }: Props) {
           +
         </button>
         <div className="flex-1" />
+        <button
+          className="pl-btn pl-btn-ghost text-xs"
+          onClick={onRequestImport}
+          data-testid="import-button"
+        >
+          Import
+        </button>
+        <button
+          className="pl-btn pl-btn-ghost text-xs"
+          onClick={onRequestCodegen}
+          data-testid="codegen-button"
+        >
+          Code
+        </button>
         <button
           className="pl-btn pl-btn-ghost text-xs mr-2"
           onClick={onRequestSave}
