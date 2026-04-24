@@ -136,7 +136,44 @@ POSTMANLIKE_AUTH_SECRET="$(openssl rand -hex 32)" PORT=4100 pnpm dev
 
 ---
 
-## 8. Repository layout
+## 8. Installing as a PWA (optional)
+
+Postmanlike is a Progressive Web App — you can "install" it into your OS dock / start menu / home screen so it launches in its own window with no browser chrome.
+
+### Chrome / Edge / Brave / Arc (desktop)
+
+1. Run `pnpm dev` (dev) **or** `pnpm --filter @postmanlike/web build && pnpm --filter @postmanlike/web preview` (production build on http://localhost:4173).
+2. Open the app in the browser.
+3. Click the **Install** button in the top bar *(or the install icon in the browser's address bar)*.
+4. The app reopens in its own window — same UI, no address bar.
+
+### Safari on iOS / iPadOS
+
+Safari doesn't support the in-app Install button. Use the share sheet:
+
+1. Open the app in Safari.
+2. Tap the **Share** icon.
+3. Choose **Add to Home Screen**.
+4. Tap **Add**.
+
+The app icon now appears on your home screen and launches standalone.
+
+### Uninstalling
+
+- **Chrome / Edge / Brave**: open the installed PWA → three-dot menu → *Uninstall Postmanlike*. Or visit `chrome://apps`.
+- **macOS**: the standalone app lives in `~/Applications/Chrome Apps/` — drag to Trash.
+- **iOS**: long-press the home-screen icon → *Remove App*.
+
+### Gotchas
+
+- **The proxy still needs to be running.** The installed PWA caches the UI, not your API calls. Outbound HTTP sends go through `http://localhost:4000`, so `pnpm --filter @postmanlike/proxy dev` (or `start` on the built app) must be alive.
+- **Origin-locked.** If you install the PWA from `http://localhost:5173` and later run the web app from a different port, the installed shortcut still points at the old origin. Uninstall and reinstall.
+- **HTTPS requirement in production.** Chrome treats `localhost` as secure, so install works in dev. A real hosted deployment needs HTTPS.
+- **Updates**: when a new version is deployed, the app shows a "Reload to update" banner. Click it to pick up the new bundle.
+
+---
+
+## 9. Repository layout
 
 ```
 apps/
@@ -153,7 +190,7 @@ README.md      Short project overview
 
 ---
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 **`pnpm: command not found`**
 Install pnpm: `npm install -g pnpm`, then reopen the terminal.
@@ -175,7 +212,7 @@ Postmanlike's UI never issues cross-origin requests directly — it routes throu
 
 ---
 
-## 10. Where to go next
+## 11. Where to go next
 
 - [FEATURES.md](./FEATURES.md) — what's shipped vs. what's still pending per phase.
 - [README.md](./README.md) — project overview and stack summary.

@@ -177,6 +177,20 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | 🟡 | Keyboard shortcuts: send ⌘↵ ✅, save ⌘S ✅, new tab Alt+N ✅, close Alt+W ✅ (⌘T / ⌘W are reserved by browsers) |
 | ⬜ | Settings (proxy URL, SSL verify, timeout, history cap, theme) |
 
+## 17. Progressive Web App — *Phase 12*
+| Status | Feature |
+|:-:|---|
+| ✅ | Web App Manifest (name, description, icons, theme + background, `display: standalone`) |
+| ✅ | Service worker precaches the full app shell (index.html + hashed JS/CSS + icons) for offline launch |
+| ✅ | In-app **Install** button surfaced when `beforeinstallprompt` fires (Chrome / Edge / Brave / Arc) |
+| ✅ | iOS Safari fallback: in-app hint explaining Share ▸ Add to Home Screen |
+| ✅ | "Reload to update" banner when a new service worker is waiting |
+| ✅ | Apple-touch-icon + favicon + `theme-color` + `apple-mobile-web-app-*` meta tags |
+| 🟡 | Proxy stays network-dependent; outbound HTTP sends require `:4000` to be reachable |
+| ⬜ | `share_target` manifest entry (accept cURL from share sheet) |
+| ⬜ | Push notifications / background sync of unsent requests |
+| ⬜ | Android TWA / Bubblewrap for the Play Store |
+
 ---
 
 ## Out of Scope
