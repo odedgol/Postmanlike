@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   buildProxyPayload,
@@ -25,6 +25,7 @@ import { RequestTabs } from './RequestTabs';
 import { UnresolvedBadge } from '../env/UnresolvedBadge';
 import { ResponseView } from '../response/ResponseView';
 import { nanoid } from 'nanoid';
+import { loadRatio, ratioFromDrag, saveRatio } from './splitRatio';
 
 interface Props {
   tabId: string;
@@ -35,6 +36,44 @@ const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 export function RequestView({ tabId }: Props) {
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
   const { updateDraft, setStatus } = useTabsStore();
+
+  const [splitRatio, setSplitRatio] = useState<number>(loadRatio);
+  const [splitDragging, setSplitDragging] = useState(false);
+  const splitContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    saveRatio(splitRatio);
+  }, [splitRatio]);
+
+  const beginSplitDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const container = splitContainerRef.current;
+    if (!container) return;
+    e.preventDefault();
+    const startY = e.clientY;
+    const startRatio = splitRatio;
+    const containerHeight = container.getBoundingClientRect().height;
+    setSplitDragging(true);
+
+    const onMove = (ev: PointerEvent) => {
+      setSplitRatio(
+        ratioFromDrag({
+          startY,
+          currentY: ev.clientY,
+          startRatio,
+          containerHeight,
+        }),
+      );
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      setSplitDragging(false);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  };
 
   // Reactive scopes for the unresolved badge. Reruns on env / globals / active env change.
   const scopes = useLiveQuery(
@@ -165,16 +204,42 @@ export function RequestView({ tabId }: Props) {
       />
       <UnresolvedBadge names={unresolved} />
       {/*
-        flex split (request / response) with flex-1 + min-h-0 on each half
-        so they share the remaining space equally even when the children's
-        intrinsic content (e.g. the body textarea) would otherwise bias
-        grid's track sizing.
+        flex split (request / response) with a draggable divider between
+        them. Each half uses flex-basis: 0 + a configurable flex-grow so
+        the ratio is explicit instead of content-biased; min-h-0 lets the
+        inner overflow-auto scrolls actually engage.
       */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div className="flex-1 min-h-0 border-b border-neutral-300 dark:border-neutral-800 overflow-hidden">
+      <div
+        ref={splitContainerRef}
+        data-testid="request-response-split"
+        className={`flex-1 min-h-0 flex flex-col overflow-hidden ${
+          splitDragging ? 'select-none' : ''
+        }`}
+      >
+        <div
+          data-testid="request-pane"
+          className="min-h-0 overflow-hidden"
+          style={{ flex: `${splitRatio} 1 0` }}
+        >
           <RequestTabs tabId={tab.id} />
         </div>
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize request / response split"
+          data-testid="split-handle"
+          onPointerDown={beginSplitDrag}
+          className={`h-1.5 cursor-ns-resize transition-colors ${
+            splitDragging
+              ? 'bg-brand'
+              : 'bg-neutral-200 dark:bg-neutral-800 hover:bg-brand/60'
+          }`}
+        />
+        <div
+          data-testid="response-pane"
+          className="min-h-0 overflow-hidden"
+          style={{ flex: `${1 - splitRatio} 1 0` }}
+        >
           <ResponseView tabId={tab.id} />
         </div>
       </div>
