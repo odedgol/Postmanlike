@@ -14,21 +14,29 @@ export function Sidebar() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex border-b border-neutral-300 dark:border-neutral-800 text-xs">
-        {SECTIONS.map((s) => (
-          <button
-            key={s}
-            data-testid={`sidebar-section-${s.toLowerCase()}`}
-            onClick={() => setSection(s)}
-            className={`flex-1 py-2 ${
-              section === s
-                ? 'text-brand border-b-2 border-brand'
-                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            {s}
-          </button>
-        ))}
+      <div
+        role="tablist"
+        className="flex gap-1 px-1 pt-1 border-b border-neutral-300 dark:border-neutral-800 text-xs overflow-x-auto whitespace-nowrap"
+      >
+        {SECTIONS.map((s) => {
+          const active = section === s;
+          return (
+            <button
+              key={s}
+              role="tab"
+              aria-selected={active}
+              data-testid={`sidebar-section-${s.toLowerCase()}`}
+              onClick={() => setSection(s)}
+              className={`px-2.5 py-1.5 rounded-t border-b-2 transition-colors ${
+                active
+                  ? 'text-brand border-brand'
+                  : 'text-neutral-500 border-transparent hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900'
+              }`}
+            >
+              {s}
+            </button>
+          );
+        })}
       </div>
       <div className="flex-1 overflow-hidden">
         {section === 'Collections' && <CollectionsPanel />}
