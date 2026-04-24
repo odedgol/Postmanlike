@@ -1,4 +1,6 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 export interface Account {
   id: string;
@@ -15,6 +17,11 @@ export interface TokenPayload {
   exp: number;
 }
 
+interface AuthSnapshot {
+  secret: string;
+  accounts: Account[];
+}
+
 function b64url(buf: Buffer): string {
   return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
@@ -24,11 +31,49 @@ function fromB64url(s: string): Buffer {
   return Buffer.from(normalized, 'base64');
 }
 
-const SECRET =
-  process.env.POSTMANLIKE_AUTH_SECRET ||
-  // Dev fallback; regenerated per process restart. Real deployments must
-  // supply a stable secret via env var.
-  randomBytes(32).toString('hex');
+// Resolve relative to the current file so it works whether the proxy runs
+// with tsx in dev or node from dist.
+const DATA_DIR =
+  process.env.POSTMANLIKE_DATA_DIR ||
+  resolve(new URL('../..', import.meta.url).pathname, '.data');
+const AUTH_FILE = resolve(DATA_DIR, 'auth.json');
+
+function loadSnapshot(): AuthSnapshot {
+  if (!existsSync(AUTH_FILE)) return { secret: '', accounts: [] };
+  try {
+    const raw = readFileSync(AUTH_FILE, 'utf-8');
+    const parsed = JSON.parse(raw) as AuthSnapshot;
+    return {
+      secret: typeof parsed.secret === 'string' ? parsed.secret : '',
+      accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
+    };
+  } catch {
+    return { secret: '', accounts: [] };
+  }
+}
+
+let snapshot = loadSnapshot();
+
+function persistSnapshot(): void {
+  try {
+    mkdirSync(dirname(AUTH_FILE), { recursive: true });
+    const tmp = `${AUTH_FILE}.tmp`;
+    writeFileSync(tmp, JSON.stringify(snapshot, null, 2), 'utf-8');
+    renameSync(tmp, AUTH_FILE);
+  } catch {
+    // In test environments the fs may be read-only; fall through so tests
+    // still exercise in-memory behavior.
+  }
+}
+
+function resolveSecret(): string {
+  if (process.env.POSTMANLIKE_AUTH_SECRET) return process.env.POSTMANLIKE_AUTH_SECRET;
+  if (!snapshot.secret) {
+    snapshot.secret = randomBytes(32).toString('hex');
+    persistSnapshot();
+  }
+  return snapshot.secret;
+}
 
 export function hashPassword(password: string): string {
   const salt = randomBytes(16);
@@ -49,7 +94,7 @@ export function signToken(payload: Omit<TokenPayload, 'iat' | 'exp'>, ttlSec = 7
   const now = Math.floor(Date.now() / 1000);
   const full: TokenPayload = { ...payload, iat: now, exp: now + ttlSec };
   const body = b64url(Buffer.from(JSON.stringify(full), 'utf-8'));
-  const sig = b64url(createHmac('sha256', SECRET).update(body).digest());
+  const sig = b64url(createHmac('sha256', resolveSecret()).update(body).digest());
   return `${body}.${sig}`;
 }
 
@@ -58,7 +103,7 @@ export function verifyToken(token: string, nowSec: number = Math.floor(Date.now(
   if (dot < 0) return null;
   const body = token.slice(0, dot);
   const sig = token.slice(dot + 1);
-  const expected = createHmac('sha256', SECRET).update(body).digest();
+  const expected = createHmac('sha256', resolveSecret()).update(body).digest();
   let actual: Buffer;
   try {
     actual = fromB64url(sig);
@@ -77,8 +122,17 @@ export function verifyToken(token: string, nowSec: number = Math.floor(Date.now(
 }
 
 export class AccountStore {
+  private readonly persist: () => void;
   private byId = new Map<string, Account>();
   private byEmail = new Map<string, Account>();
+
+  constructor(options: { seed?: Account[]; onChange?: () => void } = {}) {
+    this.persist = options.onChange ?? (() => {});
+    for (const account of options.seed ?? []) {
+      this.byId.set(account.id, account);
+      this.byEmail.set(account.email, account);
+    }
+  }
 
   register(email: string, password: string): Account {
     const normalized = email.trim().toLowerCase();
@@ -92,6 +146,7 @@ export class AccountStore {
     };
     this.byId.set(id, account);
     this.byEmail.set(normalized, account);
+    this.persist();
     return account;
   }
 
@@ -109,7 +164,19 @@ export class AccountStore {
   clear() {
     this.byId.clear();
     this.byEmail.clear();
+    this.persist();
+  }
+
+  all(): Account[] {
+    return [...this.byId.values()];
   }
 }
 
-export const accountStore = new AccountStore();
+// Singleton, hydrated from disk and wired to persist on every mutation.
+export const accountStore = new AccountStore({
+  seed: snapshot.accounts,
+  onChange: () => {
+    snapshot = { secret: snapshot.secret || resolveSecret(), accounts: accountStore.all() };
+    persistSnapshot();
+  },
+});
