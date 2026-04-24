@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { CollectionsPanel } from '../collections/CollectionsPanel';
 import { HistoryPanel } from './HistoryPanel';
 import { CookiesPanel } from '../cookies/CookiesPanel';
+import { MocksPanel } from '../mocks/MocksPanel';
 
-const SECTIONS = ['Collections', 'History', 'Cookies'] as const;
+const SECTIONS = ['Collections', 'History', 'Cookies', 'Mocks'] as const;
 type Section = (typeof SECTIONS)[number];
 
 export function Sidebar() {
@@ -31,6 +32,7 @@ export function Sidebar() {
         {section === 'Collections' && <CollectionsPanel />}
         {section === 'History' && <HistoryPanel />}
         {section === 'Cookies' && <CookiesPanel />}
+        {section === 'Mocks' && <MocksPanel />}
       </div>
     </div>
   );
