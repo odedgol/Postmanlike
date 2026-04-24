@@ -55,3 +55,39 @@ export interface HistoryEntry {
   timingMs: number;
   sizeBytes: number;
 }
+
+export interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  order: number;
+}
+
+export interface Folder {
+  id: string;
+  collectionId: string;
+  parentId: string | null;
+  name: string;
+  order: number;
+}
+
+export interface SavedRequest {
+  id: string;
+  collectionId: string;
+  folderId: string | null;
+  order: number;
+  draft: RequestDraft;
+}
+
+export interface PersistedTab {
+  id: string;
+  originId: string | null;
+  originSnapshot: RequestDraft | null;
+  draft: RequestDraft;
+}
+
+export interface PersistedTabsState {
+  key: 'default';
+  tabs: PersistedTab[];
+  activeId: string;
+}

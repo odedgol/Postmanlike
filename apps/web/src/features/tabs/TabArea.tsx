@@ -1,7 +1,11 @@
-import { useTabsStore } from '../../state/tabsStore';
+import { isTabDirty, useTabsStore } from '../../state/tabsStore';
 import { RequestView } from '../request/RequestView';
 
-export function TabArea() {
+interface Props {
+  onRequestSave: () => void;
+}
+
+export function TabArea({ onRequestSave }: Props) {
   const { tabs, activeId, addTab, closeTab, activate } = useTabsStore();
   const active = tabs.find((t) => t.id === activeId);
 
@@ -12,34 +16,41 @@ export function TabArea() {
         data-testid="tab-strip"
         className="flex items-stretch bg-neutral-200/60 dark:bg-neutral-900 border-b border-neutral-300 dark:border-neutral-800 overflow-x-auto"
       >
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={t.id === activeId}
-            onClick={() => activate(t.id)}
-            data-testid={`tab-${t.id}`}
-            className={`flex items-center gap-2 px-3 py-2 text-sm border-r border-neutral-300 dark:border-neutral-800 whitespace-nowrap ${
-              t.id === activeId
-                ? 'bg-white dark:bg-neutral-950'
-                : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'
-            }`}
-          >
-            <span className={`pl-chip ${methodColor(t.draft.method)}`}>{t.draft.method}</span>
-            <span className="max-w-[200px] truncate">{t.draft.name}</span>
-            <span
-              role="button"
-              aria-label={`Close ${t.draft.name}`}
-              className="ml-1 text-neutral-500 hover:text-red-500"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeTab(t.id);
-              }}
+        {tabs.map((t) => {
+          const dirty = isTabDirty(t);
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={t.id === activeId}
+              onClick={() => activate(t.id)}
+              data-testid={`tab-${t.id}`}
+              data-dirty={dirty ? 'true' : 'false'}
+              className={`flex items-center gap-2 px-3 py-2 text-sm border-r border-neutral-300 dark:border-neutral-800 whitespace-nowrap ${
+                t.id === activeId
+                  ? 'bg-white dark:bg-neutral-950'
+                  : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'
+              }`}
             >
-              ×
-            </span>
-          </button>
-        ))}
+              <span className={`pl-chip ${methodColor(t.draft.method)}`}>{t.draft.method}</span>
+              <span className="max-w-[200px] truncate">
+                {t.draft.name}
+                {dirty && <span data-testid="dirty-dot" className="ml-1 text-brand">●</span>}
+              </span>
+              <span
+                role="button"
+                aria-label={`Close ${t.draft.name}`}
+                className="ml-1 text-neutral-500 hover:text-red-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeTab(t.id);
+                }}
+              >
+                ×
+              </span>
+            </button>
+          );
+        })}
         <button
           className="px-3 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           onClick={() => addTab()}
@@ -47,6 +58,14 @@ export function TabArea() {
           data-testid="new-tab"
         >
           +
+        </button>
+        <div className="flex-1" />
+        <button
+          className="pl-btn pl-btn-ghost text-xs mr-2"
+          onClick={onRequestSave}
+          data-testid="save-button"
+        >
+          Save
         </button>
       </div>
       <div className="overflow-hidden">{active && <RequestView tabId={active.id} />}</div>

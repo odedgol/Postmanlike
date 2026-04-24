@@ -35,11 +35,16 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 3. Collections & Folders — *Phase 2*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Nested folders with drag-reorder, rename, duplicate, delete |
-| ⬜ | Collection-level auth / variables / description |
+| ✅ | Nested folders (create / rename / delete, cascading delete) |
+| ⬜ | Drag-reorder |
+| ⬜ | Duplicate |
+| ⬜ | Collection-level auth / variables |
+| 🟡 | Collection-level description (stored, not yet editable in UI) |
 | ⬜ | Pre-request and test scripts at collection level |
 | ⬜ | Collection Runner with iteration data (CSV / JSON) |
 | ⬜ | Per-request saved examples (response pairs) |
+| ✅ | Save request into collection / folder |
+| ✅ | Click saved request to open in a tab |
 
 ## 4. Workspaces (Collaboration-lite) — *Phase 2*
 | Status | Feature |
@@ -137,11 +142,11 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 |:-:|---|
 | ✅ | 3-pane IDE shell (sidebar / tabs / inspector) |
 | ✅ | Light / dark theme |
-| 🟡 | Multi-tab interface with dirty indicators, restore-on-reload |
+| ✅ | Multi-tab interface with dirty indicator + restore-on-reload |
 | ⬜ | Command palette (`⌘K`) |
 | ⬜ | Global search across collections / requests / envs |
 | ⬜ | Density toggle (compact / cozy) |
-| ⬜ | Keyboard shortcuts (send ⌘↵, save ⌘S, new tab ⌘T, close ⌘W) |
+| 🟡 | Keyboard shortcuts: send ⌘↵ ✅, save ⌘S ✅, new tab Alt+N ✅, close Alt+W ✅ (⌘T / ⌘W are reserved by browsers) |
 | ⬜ | Settings (proxy URL, SSL verify, timeout, history cap, theme) |
 
 ---
