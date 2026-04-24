@@ -1,3 +1,4 @@
+import { applyAuth } from './auth.js';
 import type { KeyValue, ProxyRequestPayload, RequestDraft } from './types.js';
 
 export function kvToRecord(items: KeyValue[]): Record<string, string> {
@@ -24,8 +25,13 @@ export function appendQueryParams(url: string, params: KeyValue[]): string {
 }
 
 export function buildProxyPayload(draft: RequestDraft): ProxyRequestPayload {
+  const applied = applyAuth(draft.auth);
   const headers = kvToRecord(draft.headers);
-  const url = appendQueryParams(draft.url, draft.params);
+  for (const [k, v] of Object.entries(applied.headers)) headers[k] = v;
+  const url = appendQueryParams(
+    draft.url,
+    [...draft.params, ...applied.queryParams],
+  );
 
   let body: string | undefined;
   switch (draft.bodyMode) {
@@ -64,6 +70,7 @@ export function buildProxyPayload(draft: RequestDraft): ProxyRequestPayload {
     url,
     headers,
     body,
+    ...(applied.serverAuth ? { auth: applied.serverAuth } : {}),
   };
 }
 

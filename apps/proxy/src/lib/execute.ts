@@ -1,9 +1,13 @@
+import type { RequestAuth } from '@postmanlike/shared';
+import { signRequest } from './sigv4.js';
+
 export interface ProxyRequest {
   method: string;
   url: string;
   headers?: Record<string, string>;
   body?: unknown;
   timeoutMs?: number;
+  auth?: RequestAuth;
 }
 
 export interface ProxyResponse {
@@ -32,15 +36,33 @@ export async function executeProxyRequest(req: ProxyRequest): Promise<ProxyRespo
   }
 
   const method = req.method.toUpperCase();
-  const headers = new Headers();
+  const headersRecord: Record<string, string> = {};
   for (const [k, v] of Object.entries(req.headers ?? {})) {
-    if (typeof v === 'string' && v.length > 0) headers.set(k, v);
+    if (typeof v === 'string' && v.length > 0) headersRecord[k] = v;
   }
 
-  const init: RequestInit = { method, headers };
-  if (!METHODS_WITHOUT_BODY.has(method) && req.body != null && req.body !== '') {
-    init.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+  const bodyString =
+    !METHODS_WITHOUT_BODY.has(method) && req.body != null && req.body !== ''
+      ? typeof req.body === 'string'
+        ? req.body
+        : JSON.stringify(req.body)
+      : undefined;
+
+  // Server-side auth: AWS SigV4 signs headers here so the secret never hits
+  // the browser's outgoing request.
+  if (req.auth && req.auth.type === 'aws-sigv4') {
+    const signed = signRequest(
+      { method, url: parsed.toString(), headers: headersRecord, body: bodyString },
+      req.auth,
+    );
+    for (const [k, v] of Object.entries(signed.headers)) headersRecord[k] = v;
   }
+
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(headersRecord)) headers.set(k, v);
+
+  const init: RequestInit = { method, headers };
+  if (bodyString != null) init.body = bodyString;
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), req.timeoutMs ?? 30000);

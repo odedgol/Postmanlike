@@ -16,6 +16,41 @@ export interface KeyValue {
 
 export type BodyMode = 'none' | 'raw-json' | 'raw-text' | 'form-url';
 
+export type AuthType = 'none' | 'api-key' | 'bearer' | 'basic' | 'aws-sigv4';
+
+export interface ApiKeyAuth {
+  type: 'api-key';
+  key: string;
+  value: string;
+  location: 'header' | 'query';
+}
+
+export interface BearerAuth {
+  type: 'bearer';
+  token: string;
+}
+
+export interface BasicAuth {
+  type: 'basic';
+  username: string;
+  password: string;
+}
+
+export interface AwsSigV4Auth {
+  type: 'aws-sigv4';
+  accessKeyId: string;
+  secretAccessKey: string;
+  region: string;
+  service: string;
+  sessionToken?: string;
+}
+
+export interface NoAuth {
+  type: 'none';
+}
+
+export type RequestAuth = NoAuth | ApiKeyAuth | BearerAuth | BasicAuth | AwsSigV4Auth;
+
 export interface RequestDraft {
   id: string;
   name: string;
@@ -28,6 +63,7 @@ export interface RequestDraft {
   bodyForm: KeyValue[];
   preScript?: string;
   testScript?: string;
+  auth?: RequestAuth;
 }
 
 export interface ProxyRequestPayload {
@@ -36,6 +72,7 @@ export interface ProxyRequestPayload {
   headers: Record<string, string>;
   body?: string;
   timeoutMs?: number;
+  auth?: RequestAuth;
 }
 
 export interface ProxyResponsePayload {

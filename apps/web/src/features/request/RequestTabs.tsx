@@ -2,8 +2,9 @@ import { useState } from 'react';
 import type { BodyMode } from '@postmanlike/shared';
 import { useTabsStore } from '../../state/tabsStore';
 import { KeyValueTable } from './KeyValueTable';
+import { AuthPanel } from '../auth/AuthPanel';
 
-const SECTIONS = ['Params', 'Headers', 'Body', 'Pre-request', 'Tests'] as const;
+const SECTIONS = ['Params', 'Auth', 'Headers', 'Body', 'Pre-request', 'Tests'] as const;
 type Section = (typeof SECTIONS)[number];
 
 interface Props {
@@ -42,6 +43,9 @@ export function RequestTabs({ tabId }: Props) {
             rows={d.params}
             onChange={(params) => updateDraft(tabId, { params })}
           />
+        )}
+        {section === 'Auth' && (
+          <AuthPanel tabId={tabId} />
         )}
         {section === 'Headers' && (
           <KeyValueTable
