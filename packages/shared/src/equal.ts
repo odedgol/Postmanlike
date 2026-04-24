@@ -28,6 +28,8 @@ export function draftsEqual(a: RequestDraft, b: RequestDraft): boolean {
   if (a.name !== b.name) return false;
   if (a.bodyMode !== b.bodyMode) return false;
   if (a.bodyRaw !== b.bodyRaw) return false;
+  if ((a.preScript ?? '') !== (b.preScript ?? '')) return false;
+  if ((a.testScript ?? '') !== (b.testScript ?? '')) return false;
   if (!kvEqual(a.params, b.params)) return false;
   if (!kvEqual(a.headers, b.headers)) return false;
   if (!kvEqual(a.bodyForm, b.bodyForm)) return false;

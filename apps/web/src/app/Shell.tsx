@@ -1,5 +1,6 @@
 import { Sidebar } from '../features/sidebar/Sidebar';
 import { TabArea } from '../features/tabs/TabArea';
+import { ConsolePanel } from '../features/console/ConsolePanel';
 import { TopBar } from './TopBar';
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
 
 export function Shell({ onRequestSave }: Props) {
   return (
-    <div className="h-full w-full grid grid-rows-[auto_1fr] overflow-hidden">
+    <div className="h-full w-full grid grid-rows-[auto_1fr_auto] overflow-hidden">
       <TopBar />
       <div className="grid grid-cols-[280px_1fr] overflow-hidden border-t border-neutral-300 dark:border-neutral-800">
         <aside
@@ -21,6 +22,7 @@ export function Shell({ onRequestSave }: Props) {
           <TabArea onRequestSave={onRequestSave} />
         </main>
       </div>
+      <ConsolePanel />
     </div>
   );
 }

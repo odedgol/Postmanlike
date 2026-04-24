@@ -3,7 +3,7 @@ import type { BodyMode } from '@postmanlike/shared';
 import { useTabsStore } from '../../state/tabsStore';
 import { KeyValueTable } from './KeyValueTable';
 
-const SECTIONS = ['Params', 'Headers', 'Body'] as const;
+const SECTIONS = ['Params', 'Headers', 'Body', 'Pre-request', 'Tests'] as const;
 type Section = (typeof SECTIONS)[number];
 
 interface Props {
@@ -61,8 +61,47 @@ export function RequestTabs({ tabId }: Props) {
             onFormChange={(bodyForm) => updateDraft(tabId, { bodyForm })}
           />
         )}
+        {section === 'Pre-request' && (
+          <ScriptEditor
+            testid="pre-script-editor"
+            placeholder={`// Runs before the request is sent.\n// pm.environment.set("token", "abc");\n// console.log("before send");`}
+            value={d.preScript ?? ''}
+            onChange={(preScript) => updateDraft(tabId, { preScript })}
+          />
+        )}
+        {section === 'Tests' && (
+          <ScriptEditor
+            testid="test-script-editor"
+            placeholder={`// Runs after the response arrives.\n// pm.test("200 OK", () => pm.expect(pm.response.status).toBe(200));`}
+            value={d.testScript ?? ''}
+            onChange={(testScript) => updateDraft(tabId, { testScript })}
+          />
+        )}
       </div>
     </div>
+  );
+}
+
+function ScriptEditor({
+  value,
+  onChange,
+  placeholder,
+  testid,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  placeholder: string;
+  testid: string;
+}) {
+  return (
+    <textarea
+      data-testid={testid}
+      className="pl-input w-full h-64 font-mono text-xs"
+      spellCheck={false}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+    />
   );
 }
 

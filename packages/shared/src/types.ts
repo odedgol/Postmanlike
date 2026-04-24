@@ -26,6 +26,8 @@ export interface RequestDraft {
   bodyMode: BodyMode;
   bodyRaw: string;
   bodyForm: KeyValue[];
+  preScript?: string;
+  testScript?: string;
 }
 
 export interface ProxyRequestPayload {
@@ -113,4 +115,40 @@ export interface GlobalsRow {
 export interface ActiveEnvRow {
   key: 'default';
   environmentId: string | null;
+}
+
+// Scripting
+
+export type ConsoleLevel = 'log' | 'info' | 'warn' | 'error';
+
+export interface ConsoleEntry {
+  id: string;
+  timestamp: number;
+  level: ConsoleLevel;
+  args: string[];
+  phase: 'pre-request' | 'test';
+}
+
+export interface TestResult {
+  name: string;
+  pass: boolean;
+  message?: string;
+}
+
+export interface ScriptError {
+  message: string;
+  stack?: string;
+}
+
+export interface PreScriptOutcome {
+  envPatch: Record<string, string>;
+  globalsPatch: Record<string, string>;
+  consoleEntries: ConsoleEntry[];
+  error?: ScriptError;
+}
+
+export interface TestScriptOutcome {
+  tests: TestResult[];
+  consoleEntries: ConsoleEntry[];
+  error?: ScriptError;
 }

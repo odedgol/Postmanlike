@@ -67,10 +67,14 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 6. Scripting & Tests — *Phase 4*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Pre-request + post-response JavaScript in sandboxed worker (QuickJS) |
-| ⬜ | `pm.*` API (`environment`, `globals`, `variables`, `request`, `response`, `test`, `expect`, `sendRequest`) |
-| ⬜ | Test result panel (pass/fail + messages) |
-| ⬜ | Console log with filter + clear |
+| 🟡 | Pre-request + post-response JavaScript (Function-based sandbox; QuickJS worker deferred) |
+| ✅ | `pm.environment` / `pm.globals` / `pm.variables` (get) |
+| ✅ | `pm.request` (read-only view), `pm.response` (status / headers / text / json / timing / size) |
+| ✅ | `pm.test(name, fn)` with pass/fail tracking |
+| ✅ | `pm.expect` subset: `toBe` / `toEqual` / `toInclude` / `toBeTruthy` / `toBeFalsy` / `toBeGreaterThan` / `toBeLessThan` / `toHaveStatus` / `not` |
+| ⬜ | `pm.sendRequest` |
+| ✅ | Test result panel (pass/fail + messages, script-level error surfaced) |
+| ✅ | Console panel capturing `console.log/info/warn/error` from pre-request + test scripts, with clear |
 
 ## 7. History — *Phase 1*
 | Status | Feature |
