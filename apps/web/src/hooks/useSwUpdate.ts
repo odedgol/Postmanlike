@@ -9,10 +9,15 @@ export interface SwUpdateState {
 
 const SW_URL = import.meta.env.DEV ? '/dev-sw.js?dev-sw' : '/sw.js';
 
+// Fallback timeout so the user always makes forward progress even when the
+// waiting SW doesn't respond to SKIP_WAITING (common in dev).
+const RELOAD_FALLBACK_MS = 800;
+
 export function useSwUpdate(): SwUpdateState {
   const [needsUpdate, setNeedsUpdate] = useState(false);
   const [registered, setRegistered] = useState(false);
   const wbRef = useRef<Workbox | null>(null);
+  const reloadingRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
@@ -21,7 +26,8 @@ export function useSwUpdate(): SwUpdateState {
 
     const onWaiting = () => setNeedsUpdate(true);
     const onControlling = () => {
-      // After the user accepts the update, the page reloads to pick it up.
+      if (reloadingRef.current) return;
+      reloadingRef.current = true;
       window.location.reload();
     };
 
@@ -42,11 +48,22 @@ export function useSwUpdate(): SwUpdateState {
   }, []);
 
   const reload = useCallback(() => {
+    if (reloadingRef.current) return;
     const wb = wbRef.current;
-    if (!wb) return;
-    // Tell the waiting SW to take over; the 'controlling' listener above
-    // then reloads the page.
-    wb.messageSkipWaiting();
+    // Try the clean Workbox dance (messageSkipWaiting → new SW activates →
+    // controlling event → our listener reloads). Then, as a belt-and-braces
+    // guarantee, fall back to a plain reload after a short delay so the
+    // user never sees the button "do nothing".
+    try {
+      wb?.messageSkipWaiting();
+    } catch {
+      // no-op; fallback reload below still runs
+    }
+    window.setTimeout(() => {
+      if (reloadingRef.current) return;
+      reloadingRef.current = true;
+      window.location.reload();
+    }, RELOAD_FALLBACK_MS);
   }, []);
 
   return { needsUpdate, reload, registered };
