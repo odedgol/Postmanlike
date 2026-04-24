@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { CollectionsPanel } from '../collections/CollectionsPanel';
 import { HistoryPanel } from './HistoryPanel';
+import { CookiesPanel } from '../cookies/CookiesPanel';
 
-const SECTIONS = ['Collections', 'History'] as const;
+const SECTIONS = ['Collections', 'History', 'Cookies'] as const;
 type Section = (typeof SECTIONS)[number];
 
 export function Sidebar() {
@@ -27,7 +28,9 @@ export function Sidebar() {
         ))}
       </div>
       <div className="flex-1 overflow-hidden">
-        {section === 'Collections' ? <CollectionsPanel /> : <HistoryPanel />}
+        {section === 'Collections' && <CollectionsPanel />}
+        {section === 'History' && <HistoryPanel />}
+        {section === 'Cookies' && <CookiesPanel />}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { createProxyRouter } from './routes/proxy.js';
+import { createCookiesRouter } from './routes/cookies.js';
 
 export function createApp() {
   const app = express();
@@ -26,7 +27,16 @@ export function createApp() {
     });
   });
 
+  // Hermetic Set-Cookie endpoint for E2E tests of the cookie jar.
+  app.get('/__setcookie', (req, res) => {
+    const name = String(req.query.name ?? 'session');
+    const value = String(req.query.value ?? 'ok');
+    res.setHeader('Set-Cookie', `${name}=${value}; Path=/`);
+    res.json({ set: { name, value } });
+  });
+
   app.use('/proxy', createProxyRouter());
+  app.use('/cookies', createCookiesRouter());
 
   return app;
 }
