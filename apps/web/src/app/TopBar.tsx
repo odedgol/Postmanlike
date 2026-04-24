@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { EnvSelector } from '../features/env/EnvSelector';
+import { RunnerDialog } from '../features/runner/RunnerDialog';
 
 export function TopBar() {
+  const [runnerOpen, setRunnerOpen] = useState(false);
   const [dark, setDark] = useState(() =>
     typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : true,
   );
@@ -17,6 +19,13 @@ export function TopBar() {
       </div>
       <div className="text-xs text-neutral-500">desktop web</div>
       <div className="flex-1" />
+      <button
+        className="pl-btn pl-btn-ghost"
+        onClick={() => setRunnerOpen(true)}
+        data-testid="runner-button"
+      >
+        Runner
+      </button>
       <EnvSelector />
       <button
         className="pl-btn pl-btn-ghost"
@@ -25,6 +34,7 @@ export function TopBar() {
       >
         {dark ? 'Light' : 'Dark'}
       </button>
+      {runnerOpen && <RunnerDialog onClose={() => setRunnerOpen(false)} />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { RequestAuth } from '@postmanlike/shared';
 import { signRequest } from './sigv4.js';
+import { cookieJar, extractCookiesFromSetCookieHeader } from './cookies.js';
 
 export interface ProxyRequest {
   method: string;
@@ -48,6 +49,14 @@ export async function executeProxyRequest(req: ProxyRequest): Promise<ProxyRespo
         : JSON.stringify(req.body)
       : undefined;
 
+  // Attach cookies from the jar for this domain unless the user already
+  // supplied a Cookie header.
+  const hasCookieHeader = Object.keys(headersRecord).some((k) => k.toLowerCase() === 'cookie');
+  if (!hasCookieHeader) {
+    const cookie = cookieJar.cookieHeaderFor(parsed);
+    if (cookie) headersRecord['Cookie'] = cookie;
+  }
+
   // Server-side auth: AWS SigV4 signs headers here so the secret never hits
   // the browser's outgoing request.
   if (req.auth && req.auth.type === 'aws-sigv4') {
@@ -92,6 +101,16 @@ export async function executeProxyRequest(req: ProxyRequest): Promise<ProxyRespo
   response.headers.forEach((value, key) => {
     outHeaders[key] = value;
   });
+
+  // Fold any Set-Cookie from the response into the jar.
+  const setCookieRaw =
+    typeof (response.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie ===
+    'function'
+      ? (response.headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      : outHeaders['set-cookie'];
+  if (setCookieRaw) {
+    cookieJar.upsertAll(extractCookiesFromSetCookieHeader(setCookieRaw, parsed.hostname));
+  }
 
   return {
     status: response.status,

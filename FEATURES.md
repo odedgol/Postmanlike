@@ -44,7 +44,8 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | ⬜ | Collection-level auth / variables |
 | 🟡 | Collection-level description (stored, not yet editable in UI) |
 | ⬜ | Pre-request and test scripts at collection level |
-| ⬜ | Collection Runner with iteration data (CSV / JSON) |
+| ✅ | Collection Runner (sequential, iterations, delay, per-request pass/fail + summary) |
+| ⬜ | Runner iteration data (CSV / JSON) |
 | ⬜ | Per-request saved examples (response pairs) |
 | ✅ | Save request into collection / folder |
 | ✅ | Click saved request to open in a tab |
@@ -109,8 +110,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 10. Cookies — *Phase 7*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Cookie jar per domain (view / edit / delete) |
-| ⬜ | Proxy attaches jar cookies to matching requests |
+| ✅ | Cookie jar per domain (view + clear all) populated from Set-Cookie |
+| ✅ | Proxy attaches jar cookies to matching outgoing requests |
+| ⬜ | Per-cookie edit / delete |
 
 ## 11. Mock Servers — *Phase 8*
 | Status | Feature |
