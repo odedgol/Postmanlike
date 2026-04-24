@@ -2,7 +2,7 @@
 
 A desktop-focused web clone of [postman.com](https://postman.com) — an API client with collections, environments, scripting, tests, mock servers, docs, monitors, flows, and (eventually) real-time team sync.
 
-The full feature catalog is in [FEATURES.md](./FEATURES.md). The phased build plan lives in the repo's plan file.
+The full feature catalog is in [FEATURES.md](./FEATURES.md). A step-by-step install guide for new users lives in [INSTALL.md](./INSTALL.md). The phased build plan lives in the repo's plan file.
 
 ## Stack
 - **Web:** React 18 + TypeScript + Vite + Tailwind
