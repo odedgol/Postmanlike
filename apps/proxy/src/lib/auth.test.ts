@@ -56,6 +56,22 @@ describe('AccountStore', () => {
     expect(store.login('a@b.com', 'nope')).toBeNull();
     expect(store.login('other@b.com', 'hunter22')).toBeNull();
   });
+
+  it('rehydrating from a seed list preserves accounts and lets them log in', () => {
+    const first = new AccountStore();
+    const account = first.register('rehydrate@b.com', 'hunter22');
+    const second = new AccountStore({ seed: first.all() });
+    expect(second.get(account.id)?.email).toBe('rehydrate@b.com');
+    expect(second.login('rehydrate@b.com', 'hunter22')?.id).toBe(account.id);
+  });
+
+  it('onChange fires on register and clear so the snapshot can be persisted', () => {
+    const events: number[] = [];
+    const s = new AccountStore({ onChange: () => events.push(Date.now()) });
+    s.register('a@b.com', 'hunter22');
+    s.clear();
+    expect(events.length).toBe(2);
+  });
 });
 
 describe('/auth HTTP surface', () => {

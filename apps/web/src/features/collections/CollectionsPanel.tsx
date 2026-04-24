@@ -20,6 +20,19 @@ import { useTabsStore } from '../../state/tabsStore';
 export function CollectionsPanel() {
   const collections = useLiveQuery(() => listCollections(), [], [] as Collection[]);
   const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  const create = async () => {
+    const trimmed = newName.trim();
+    if (!trimmed || creating) return;
+    setCreating(true);
+    try {
+      await createCollection(trimmed);
+      setNewName('');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col" data-testid="collections-panel">
@@ -31,21 +44,18 @@ export function CollectionsPanel() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && newName.trim()) {
-              createCollection(newName.trim());
-              setNewName('');
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              void create();
             }
           }}
+          disabled={creating}
         />
         <button
           data-testid="new-collection-button"
           className="pl-btn pl-btn-primary"
-          disabled={!newName.trim()}
-          onClick={() => {
-            if (!newName.trim()) return;
-            createCollection(newName.trim());
-            setNewName('');
-          }}
+          disabled={!newName.trim() || creating}
+          onClick={() => void create()}
         >
           +
         </button>
@@ -53,7 +63,7 @@ export function CollectionsPanel() {
       <div className="flex-1 overflow-auto" data-testid="collections-list">
         {!collections || collections.length === 0 ? (
           <div className="px-3 py-2 text-xs text-neutral-500">
-            No collections yet. Create one above.
+            No collections yet. Type a name above and press Enter.
           </div>
         ) : (
           collections.map((col) => <CollectionNode key={col.id} collection={col} />)
@@ -73,52 +83,67 @@ function CollectionNode({ collection }: { collection: Collection }) {
     [] as SavedRequest[],
   );
 
+  const toggle = () => setOpen((v) => !v);
+
   return (
-    <div className="border-b border-neutral-100 dark:border-neutral-900" data-testid={`collection-${collection.id}`}>
-      <div className="flex items-center group px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-900">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="w-5 text-left text-neutral-500"
-          aria-label={`Toggle ${collection.name}`}
-        >
+    <div
+      className="border-b border-neutral-100 dark:border-neutral-900"
+      data-testid={`collection-${collection.id}`}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+          }
+        }}
+        className="flex items-center px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer select-none"
+      >
+        <span className="w-5 text-left text-neutral-500" aria-hidden>
           {open ? '▾' : '▸'}
-        </button>
+        </span>
         <div
-          className="flex-1 text-sm cursor-text"
-          onDoubleClick={() => {
+          className="flex-1 text-sm truncate"
+          onDoubleClick={(e) => {
+            e.stopPropagation();
             const next = prompt('Rename collection', collection.name);
             if (next != null) renameCollection(collection.id, next);
           }}
           data-testid={`collection-name-${collection.id}`}
+          title="Double-click to rename"
         >
           <span className="font-semibold">{collection.name}</span>
         </div>
-        <div className="opacity-0 group-hover:opacity-100 flex gap-1 text-xs">
-          <button
-            className="pl-btn pl-btn-ghost"
+        <div
+          className="flex gap-0.5 text-xs text-neutral-400 dark:text-neutral-500"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <IconButton
+            label="New folder"
             onClick={() => {
               const name = prompt('Folder name', 'New Folder');
               if (name) createFolder(collection.id, null, name);
             }}
-            data-testid={`new-folder-${collection.id}`}
-            title="New folder"
+            testid={`new-folder-${collection.id}`}
           >
             ＋
-          </button>
-          <button
-            className="pl-btn pl-btn-ghost"
+          </IconButton>
+          <IconButton
+            label="Docs"
             onClick={() => setDocsOpen(true)}
-            data-testid={`docs-collection-${collection.id}`}
-            title="Docs"
+            testid={`docs-collection-${collection.id}`}
           >
             📄
-          </button>
-          <button
-            className="pl-btn pl-btn-ghost"
+          </IconButton>
+          <IconButton
+            label="Export"
             onClick={async () => {
-              const folders = await listFolders(collection.id);
-              const requests = await listSavedRequests(collection.id);
-              const json = exportPostmanCollection({ collection, folders, requests });
+              const fs = await listFolders(collection.id);
+              const rs = await listSavedRequests(collection.id);
+              const json = exportPostmanCollection({ collection, folders: fs, requests: rs });
               const blob = new Blob([JSON.stringify(json, null, 2)], {
                 type: 'application/json',
               });
@@ -128,38 +153,40 @@ function CollectionNode({ collection }: { collection: Collection }) {
               a.click();
               URL.revokeObjectURL(a.href);
             }}
-            data-testid={`export-collection-${collection.id}`}
-            title="Export"
+            testid={`export-collection-${collection.id}`}
           >
             ⇓
-          </button>
-          <button
-            className="pl-btn pl-btn-ghost text-red-500"
+          </IconButton>
+          <IconButton
+            label="Delete"
+            danger
             onClick={() => {
               if (confirm(`Delete collection "${collection.name}"?`)) {
                 deleteCollection(collection.id);
               }
             }}
-            data-testid={`delete-collection-${collection.id}`}
-            title="Delete"
+            testid={`delete-collection-${collection.id}`}
           >
             ×
-          </button>
+          </IconButton>
         </div>
       </div>
       {open && (
         <div className="pl-4">
-          {folders?.filter((f) => f.parentId === null).map((f) => (
-            <FolderNode key={f.id} folder={f} allFolders={folders ?? []} allRequests={requests ?? []} />
-          ))}
-          {requests?.filter((r) => r.folderId === null).map((r) => (
-            <RequestLeaf key={r.id} request={r} />
-          ))}
+          {folders
+            ?.filter((f) => f.parentId === null)
+            .map((f) => (
+              <FolderNode
+                key={f.id}
+                folder={f}
+                allFolders={folders ?? []}
+                allRequests={requests ?? []}
+              />
+            ))}
+          {requests?.filter((r) => r.folderId === null).map((r) => <RequestLeaf key={r.id} request={r} />)}
         </div>
       )}
-      {docsOpen && (
-        <DocsDialog collection={collection} onClose={() => setDocsOpen(false)} />
-      )}
+      {docsOpen && <DocsDialog collection={collection} onClose={() => setDocsOpen(false)} />}
     </div>
   );
 }
@@ -176,46 +203,60 @@ function FolderNode({
   const [open, setOpen] = useState(true);
   const children = allFolders.filter((f) => f.parentId === folder.id);
   const leafRequests = allRequests.filter((r) => r.folderId === folder.id);
+  const toggle = () => setOpen((v) => !v);
 
   return (
     <div data-testid={`folder-${folder.id}`}>
-      <div className="flex items-center group px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-900">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="w-5 text-left text-neutral-500"
-          aria-label={`Toggle ${folder.name}`}
-        >
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+          }
+        }}
+        className="flex items-center px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer select-none"
+      >
+        <span className="w-5 text-left text-neutral-500" aria-hidden>
           {open ? '▾' : '▸'}
-        </button>
+        </span>
         <span
-          className="flex-1 text-sm"
-          onDoubleClick={() => {
+          className="flex-1 text-sm truncate"
+          onDoubleClick={(e) => {
+            e.stopPropagation();
             const next = prompt('Rename folder', folder.name);
             if (next != null) renameFolder(folder.id, next);
           }}
+          title="Double-click to rename"
         >
           {folder.name}
         </span>
-        <div className="opacity-0 group-hover:opacity-100 flex gap-1 text-xs">
-          <button
-            className="pl-btn pl-btn-ghost"
+        <div
+          className="flex gap-0.5 text-xs text-neutral-400 dark:text-neutral-500"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <IconButton
+            label="Add subfolder"
             onClick={() => {
               const name = prompt('Subfolder name', 'New Folder');
               if (name) createFolder(folder.collectionId, folder.id, name);
             }}
-            title="Add subfolder"
+            testid={`new-subfolder-${folder.id}`}
           >
             ＋
-          </button>
-          <button
-            className="pl-btn pl-btn-ghost text-red-500"
+          </IconButton>
+          <IconButton
+            label="Delete folder"
+            danger
             onClick={() => {
               if (confirm(`Delete folder "${folder.name}"?`)) deleteFolder(folder.id);
             }}
-            title="Delete folder"
+            testid={`delete-folder-${folder.id}`}
           >
             ×
-          </button>
+          </IconButton>
         </div>
       </div>
       {open && (
@@ -235,10 +276,10 @@ function FolderNode({
 function RequestLeaf({ request }: { request: SavedRequest }) {
   const addTab = useTabsStore((s) => s.addTab);
   return (
-    <div className="flex items-center group px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm">
+    <div className="flex items-center px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-900 text-sm">
       <button
         data-testid={`saved-request-${request.id}`}
-        className="flex-1 text-left flex items-center gap-2"
+        className="flex-1 text-left flex items-center gap-2 min-w-0"
         onClick={() =>
           addTab({ ...request.draft }, { id: request.id, snapshot: request.draft })
         }
@@ -248,18 +289,47 @@ function RequestLeaf({ request }: { request: SavedRequest }) {
         </span>
         <span className="truncate">{request.draft.name}</span>
       </button>
-      <button
-        className="opacity-0 group-hover:opacity-100 pl-btn pl-btn-ghost text-red-500 text-xs"
+      <IconButton
+        label="Delete"
+        danger
         onClick={() => {
           if (confirm(`Delete request "${request.draft.name}"?`)) {
             deleteSavedRequest(request.id);
           }
         }}
-        title="Delete"
+        testid={`delete-request-${request.id}`}
       >
         ×
-      </button>
+      </IconButton>
     </div>
+  );
+}
+
+function IconButton({
+  children,
+  onClick,
+  label,
+  testid,
+  danger = false,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  label: string;
+  testid?: string;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      data-testid={testid}
+      className={`px-1.5 py-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors ${
+        danger ? 'hover:text-red-500' : 'hover:text-neutral-900 dark:hover:text-neutral-100'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
