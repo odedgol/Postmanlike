@@ -37,6 +37,7 @@ test.describe('Phase 1 — Request/Response MVP', () => {
     await page.getByTestId('send-button').click();
     await expect(page.getByTestId('response-status')).toContainText('200');
 
+    await page.getByTestId('sidebar-section-history').click();
     await expect(page.getByTestId('history-item').first()).toBeVisible();
     // Click the most recent history item → opens a new tab with the same URL.
     await page.getByTestId('history-item').first().click();
