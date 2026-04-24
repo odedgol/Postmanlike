@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createProxyRouter } from './routes/proxy.js';
 import { createCookiesRouter } from './routes/cookies.js';
+import { createMockMatcherRouter, createMocksRouter } from './routes/mocks.js';
 
 export function createApp() {
   const app = express();
@@ -37,6 +38,8 @@ export function createApp() {
 
   app.use('/proxy', createProxyRouter());
   app.use('/cookies', createCookiesRouter());
+  app.use('/mocks', createMocksRouter());
+  app.use('/mock', createMockMatcherRouter());
 
   return app;
 }

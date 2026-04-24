@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Collection, Folder, SavedRequest } from '@postmanlike/shared';
 import { exportPostmanCollection } from '@postmanlike/shared';
+import { DocsDialog } from '../docs/DocsDialog';
 import {
   createCollection,
   createFolder,
@@ -64,6 +65,7 @@ export function CollectionsPanel() {
 
 function CollectionNode({ collection }: { collection: Collection }) {
   const [open, setOpen] = useState(true);
+  const [docsOpen, setDocsOpen] = useState(false);
   const folders = useLiveQuery(() => listFolders(collection.id), [collection.id], [] as Folder[]);
   const requests = useLiveQuery(
     () => listSavedRequests(collection.id),
@@ -102,6 +104,14 @@ function CollectionNode({ collection }: { collection: Collection }) {
             title="New folder"
           >
             ＋
+          </button>
+          <button
+            className="pl-btn pl-btn-ghost"
+            onClick={() => setDocsOpen(true)}
+            data-testid={`docs-collection-${collection.id}`}
+            title="Docs"
+          >
+            📄
           </button>
           <button
             className="pl-btn pl-btn-ghost"
@@ -146,6 +156,9 @@ function CollectionNode({ collection }: { collection: Collection }) {
             <RequestLeaf key={r.id} request={r} />
           ))}
         </div>
+      )}
+      {docsOpen && (
+        <DocsDialog collection={collection} onClose={() => setDocsOpen(false)} />
       )}
     </div>
   );

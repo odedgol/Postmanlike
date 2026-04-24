@@ -117,17 +117,20 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 11. Mock Servers — *Phase 8*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Create mock from saved examples |
-| ⬜ | Deterministic match: method + URL + query/header matcher |
-| ⬜ | Response delay + random variants |
-| ⬜ | Local mock URL `/mock/:id/*` served by proxy |
+| ✅ | Create a mock from the current request's live response |
+| ✅ | Deterministic match: method + path |
+| ✅ | Response delay (per-route `delayMs`) |
+| ⬜ | Query/header-based matching, random variants |
+| ✅ | Local mock URL `/mock/:id/*` served by the proxy |
+| ✅ | Sidebar Mocks panel (create / open / delete) |
 
 ## 12. API Documentation — *Phase 8*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Auto-rendered collection docs with markdown + examples |
+| ✅ | Auto-rendered collection docs (nested folders, method/URL, headers, body) |
+| 🟡 | Plain-text description render (Markdown formatting pending) |
 | ⬜ | Variables reference section |
-| ⬜ | Export docs to static HTML |
+| 🟡 | Printable via browser Print; dedicated static-HTML export pending |
 
 ## 13. Monitors — *Phase 9*
 | Status | Feature |
