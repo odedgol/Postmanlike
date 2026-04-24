@@ -86,19 +86,22 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 8. Import / Export — *Phase 5*
 | Status | Feature |
 |:-:|---|
-| ⬜ | Import cURL (paste → new request) |
-| ⬜ | Import Postman v2.1 collection / environment |
+| ✅ | Import cURL (paste → new request) |
+| ✅ | Import Postman v2.1 collection (nested folders + scripts) |
+| ⬜ | Import Postman environment |
 | ⬜ | Import OpenAPI 3.0/3.1 + Swagger 2.0 |
 | ⬜ | Import HAR, Insomnia |
-| ⬜ | Export Postman v2.1 collection + environment |
+| ✅ | Export Postman v2.1 collection |
+| ⬜ | Export Postman environment |
 
 ## 9. Code Generation — *Phase 5*
 | Status | Feature |
 |:-:|---|
-| ⬜ | cURL, HTTPie |
-| ⬜ | JS fetch, axios, Node `request` |
-| ⬜ | Python `requests`, `httpx` |
-| ⬜ | Go `net/http`, Java OkHttp, C# `HttpClient`, PHP cURL, Ruby, Swift, Kotlin |
+| ✅ | cURL |
+| ✅ | JS `fetch`, `axios` |
+| ✅ | Node.js `fetch` |
+| ✅ | Python `requests` |
+| ⬜ | HTTPie, Python `httpx`, Go `net/http`, Java OkHttp, C# `HttpClient`, PHP cURL, Ruby, Swift, Kotlin |
 
 ## 10. Cookies — *Phase 7*
 | Status | Feature |

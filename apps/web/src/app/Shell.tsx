@@ -5,9 +5,11 @@ import { TopBar } from './TopBar';
 
 interface Props {
   onRequestSave: () => void;
+  onRequestCodegen: () => void;
+  onRequestImport: () => void;
 }
 
-export function Shell({ onRequestSave }: Props) {
+export function Shell({ onRequestSave, onRequestCodegen, onRequestImport }: Props) {
   return (
     <div className="h-full w-full grid grid-rows-[auto_1fr_auto] overflow-hidden">
       <TopBar />
@@ -19,7 +21,11 @@ export function Shell({ onRequestSave }: Props) {
           <Sidebar />
         </aside>
         <main className="overflow-hidden">
-          <TabArea onRequestSave={onRequestSave} />
+          <TabArea
+            onRequestSave={onRequestSave}
+            onRequestCodegen={onRequestCodegen}
+            onRequestImport={onRequestImport}
+          />
         </main>
       </div>
       <ConsolePanel />
