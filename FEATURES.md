@@ -27,9 +27,12 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 ## 2. Authorization — *Phase 6*
 | Status | Feature |
 |:-:|---|
-| ⬜ | No auth, API Key, Bearer token, Basic, Digest |
-| ⬜ | OAuth 1.0, OAuth 2.0 (auth code, client creds, PKCE, implicit, password) |
-| ⬜ | AWS Signature v4, NTLM, Hawk, Akamai EdgeGrid |
+| ✅ | No auth |
+| ✅ | API Key (header or query) |
+| ✅ | Bearer token |
+| ✅ | Basic auth |
+| ✅ | AWS Signature v4 (signed server-side in the proxy so the secret never rides on the wire from the browser) |
+| ⬜ | Digest, OAuth 1.0, OAuth 2.0 (auth code, client creds, PKCE, implicit, password), NTLM, Hawk, Akamai EdgeGrid |
 | ⬜ | Per-request inheritance from folder → collection |
 
 ## 3. Collections & Folders — *Phase 2*

@@ -5,7 +5,7 @@ export function createProxyRouter() {
   const router = Router();
 
   router.post('/', async (req, res) => {
-    const { method, url, headers, body, timeoutMs } = req.body ?? {};
+    const { method, url, headers, body, timeoutMs, auth } = req.body ?? {};
     if (!url || typeof url !== 'string') {
       res.status(400).json({ error: 'Missing required field: url' });
       return;
@@ -22,6 +22,7 @@ export function createProxyRouter() {
         headers: headers ?? {},
         body,
         timeoutMs: typeof timeoutMs === 'number' ? timeoutMs : 30000,
+        auth,
       });
       res.json(result);
     } catch (err) {

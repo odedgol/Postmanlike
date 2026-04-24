@@ -4,3 +4,4 @@ export * from './equal.js';
 export * from './variables.js';
 export * from './curl.js';
 export * from './postman.js';
+export * from './auth.js';
